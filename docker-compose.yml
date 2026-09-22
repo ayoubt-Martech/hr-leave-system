@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mmghr}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-mmghr}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mmghr} -d ${POSTGRES_DB:-mmghr}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      # Routed to the postgres service above — overrides whatever DATABASE_URL
+      # is set to in .env, since "localhost" wouldn't resolve inside the
+      # container network.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-mmghr}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-mmghr}
+      DATABASE_SSL: "false"
+    ports:
+      - "4000:4000"
+
+volumes:
+  pgdata:
