@@ -22,6 +22,8 @@ declare global {
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
   const header = req.headers.authorization;
   if (!header?.startsWith('Bearer ')) {
+    // TEMP DIAGNOSTIC — remove once the 401-reload-loop bug is found.
+    console.error(`[auth] 401 missing/malformed header on ${req.method} ${req.originalUrl} — got: ${JSON.stringify(header)}`);
     res.status(401).json({ error: 'Missing or malformed Authorization header' });
     return;
   }
@@ -31,7 +33,9 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
     const payload = jwt.verify(token, process.env.JWT_SECRET as string) as AuthPayload;
     req.user = payload;
     next();
-  } catch {
+  } catch (err) {
+    // TEMP DIAGNOSTIC — remove once the 401-reload-loop bug is found.
+    console.error(`[auth] 401 jwt.verify failed on ${req.method} ${req.originalUrl}: ${(err as Error).name}: ${(err as Error).message}`);
     res.status(401).json({ error: 'Invalid or expired token' });
   }
 }

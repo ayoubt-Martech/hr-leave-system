@@ -24,6 +24,12 @@ const app = express();
 const PORT = Number(process.env.PORT ?? 4000);
 const IS_PROD = process.env.NODE_ENV === 'production';
 
+// The app always runs behind a reverse proxy (Caddy/nginx) on the same host.
+// Without this, Express ignores X-Forwarded-For, so express-rate-limit keys
+// every visitor by the proxy's own loopback address instead of their real
+// IP — one shared bucket for all traffic instead of one bucket per visitor.
+app.set('trust proxy', 'loopback');
+
 // ─── Security middleware ──────────────────────────────────────────────────────
 
 app.use(
