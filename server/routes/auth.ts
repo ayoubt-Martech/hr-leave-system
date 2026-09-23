@@ -181,11 +181,14 @@ router.post('/logout', requireAuth, (_req: Request, res: Response) => {
 });
 
 /**
- * POST /api/auth/dev-login — development only, blocked in production.
+ * POST /api/auth/dev-login — disabled unless ALLOW_DEV_LOGIN=true.
+ * Off by default in every environment, including non-production, so it
+ * can't be accidentally left reachable — opt in explicitly, and only for
+ * as long as needed (e.g. a demo before Google OAuth is configured).
  * Body: { email: string }
  */
 router.post('/dev-login', async (req: Request, res: Response): Promise<void> => {
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.ALLOW_DEV_LOGIN !== 'true') {
     res.status(404).json({ error: 'Not found' });
     return;
   }
