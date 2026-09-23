@@ -9,6 +9,12 @@ RUN npm ci
 # ─── build: compile the Vite frontend and the Express/TS backend ─────────────
 FROM node:20-alpine AS build
 WORKDIR /app
+# Vite bakes VITE_* vars into the bundle at build time (.dockerignore keeps
+# .env files out of this stage on purpose) — off by default so the dev-login
+# UI never ships in a normal build; opt in per-build with --build-arg for a
+# short-lived demo before Google OAuth is configured.
+ARG VITE_DEV_LOGIN=false
+ENV VITE_DEV_LOGIN=$VITE_DEV_LOGIN
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build && npm run server:build

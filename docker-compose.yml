@@ -15,7 +15,11 @@ services:
       retries: 10
 
   app:
-    build: .
+    build:
+      context: .
+      args:
+        # See Dockerfile — off by default, opt in via .env for a short-lived demo.
+        VITE_DEV_LOGIN: ${VITE_DEV_LOGIN:-false}
     restart: unless-stopped
     depends_on:
       postgres:
