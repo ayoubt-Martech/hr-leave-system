@@ -90,9 +90,12 @@ export const AuthService = {
    * Only works when VITE_DEV_LOGIN=true and the server is in development mode.
    */
   async devLogin(email: string): Promise<User> {
+    // Unlike apiFetch, this one deliberately keeps default credentials — it
+    // sends no Authorization header of its own, so there's nothing for the
+    // browser's cached Caddy Basic Auth to clobber, and the server-side
+    // Caddy config specifically requires Basic Auth on this one route.
     const res = await fetch(`${BASE}/auth/dev-login`, {
       method: 'POST',
-      credentials: 'omit',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     });
