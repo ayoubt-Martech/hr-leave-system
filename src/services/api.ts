@@ -50,6 +50,12 @@ function authHeaders(): HeadersInit {
 async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     ...init,
+    // Explicitly opt out of the browser's own HTTP-auth handling. If this
+    // origin sits behind Basic Auth (e.g. a temporary demo gate), the
+    // browser can otherwise re-attach cached Basic Auth credentials in
+    // place of — or on retry, clobbering — our own Bearer token, which
+    // Express then rejects as a malformed Authorization header.
+    credentials: 'omit',
     headers: { ...authHeaders(), ...(init.headers ?? {}) },
   });
 
@@ -86,6 +92,7 @@ export const AuthService = {
   async devLogin(email: string): Promise<User> {
     const res = await fetch(`${BASE}/auth/dev-login`, {
       method: 'POST',
+      credentials: 'omit',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     });
@@ -269,7 +276,7 @@ export const ApiService = {
     // and window.open() after an await gets silently blocked in most browsers.
     const newTab = window.open('', '_blank');
     try {
-      const res = await fetch(`${BASE}/requests/${requestId}/attachment`, { headers: authHeaders() });
+      const res = await fetch(`${BASE}/requests/${requestId}/attachment`, { credentials: 'omit', headers: authHeaders() });
       if (!res.ok) {
         const body = await res.json().catch(() => ({ error: res.statusText }));
         throw new Error(body.error ?? `HTTP ${res.status}`);
@@ -388,7 +395,7 @@ export const ApiService = {
 
   /** Downloads a fresh .xlsx export of all users + leave requests. */
   async exportData(): Promise<void> {
-    const res = await fetch(`${BASE}/migration/export`, { headers: authHeaders() });
+    const res = await fetch(`${BASE}/migration/export`, { credentials: 'omit', headers: authHeaders() });
     if (!res.ok) {
       const body = await res.json().catch(() => ({ error: res.statusText }));
       throw new Error(body.error ?? `Export failed: ${res.statusText}`);
