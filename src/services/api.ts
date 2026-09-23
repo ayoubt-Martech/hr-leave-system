@@ -110,7 +110,21 @@ export const AuthService = {
       window.history.replaceState({}, '', clean);
     }
 
-    if (!getToken()) return null;
+    if (!getToken()) {
+      // Temporary demo convenience — silently dev-login as a fixed email
+      // instead of showing the login screen. Requires ALLOW_DEV_LOGIN=true
+      // on the server; meant to sit behind an outer gate (e.g. Basic Auth)
+      // since it skips authentication entirely for anyone who reaches it.
+      const autoEmail = import.meta.env.VITE_AUTO_LOGIN_EMAIL;
+      if (autoEmail) {
+        try {
+          return await AuthService.devLogin(autoEmail);
+        } catch {
+          return null;
+        }
+      }
+      return null;
+    }
 
     try {
       return await apiFetch<User>('/auth/me');

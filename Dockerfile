@@ -14,7 +14,9 @@ WORKDIR /app
 # UI never ships in a normal build; opt in per-build with --build-arg for a
 # short-lived demo before Google OAuth is configured.
 ARG VITE_DEV_LOGIN=false
+ARG VITE_AUTO_LOGIN_EMAIL=""
 ENV VITE_DEV_LOGIN=$VITE_DEV_LOGIN
+ENV VITE_AUTO_LOGIN_EMAIL=$VITE_AUTO_LOGIN_EMAIL
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build && npm run server:build
