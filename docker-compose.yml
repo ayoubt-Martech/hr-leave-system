@@ -31,7 +31,10 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-mmghr}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-mmghr}
       DATABASE_SSL: "false"
     ports:
-      - "4000:4000"
+      # Bound to loopback only — the reverse proxy (Caddy/nginx) reaches this
+      # over 127.0.0.1; publishing on 0.0.0.0 would bypass ufw since Docker
+      # writes its own iptables DNAT/FORWARD rules ahead of ufw's chain.
+      - "127.0.0.1:4000:4000"
 
 volumes:
   pgdata:
