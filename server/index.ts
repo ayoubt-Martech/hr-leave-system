@@ -31,10 +31,16 @@ app.use(
     // Allow the frontend to load from same origin in production
     contentSecurityPolicy: IS_PROD
       ? {
+          // useDefaults: false — otherwise helmet merges in its default
+          // directives too, including upgrade-insecure-requests, which
+          // rewrites every same-origin http:// asset request to https://
+          // and breaks the app whenever it's served without TLS in front.
+          useDefaults: false,
           directives: {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'"],
+            styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+            fontSrc: ["'self'", 'https://fonts.gstatic.com'],
             imgSrc: ["'self'", 'data:', 'https:'],
             connectSrc: ["'self'"],
           },
